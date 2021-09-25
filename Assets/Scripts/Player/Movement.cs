@@ -5,76 +5,85 @@ using UnityEngine;
 public class Movement : IPlayerPhysicsState
 {
     [SerializeField] private Vector3 _gravity;
+    [SerializeField] private float _gravityMultiplier;
     [SerializeField] private float _slopeFallSpeed;
     [SerializeField] private float _minimumYValue;
-    [SerializeField] private float _gravityMultiplier;
     [SerializeField] private float _dampingForce;
     [SerializeField] private PlayerGround _playerGround;
     public event Action<Vector3> VelocityCalculated;
     private bool _wasGrounded;
 
-    private Vector3 _velocityToAdd;
-    private Vector3 _velocity;
-    private Vector3 _gravityVelocity;
+    private Vector3 _inputMovement;
+    private Vector3 _forces;
+    private Vector3 _movement;
 
-    public Vector3 Velocity => _velocity + _gravityVelocity;
-
-    public void FixedUpdate(Vector3 currentPosition, float time)
+    public void Start()
     {
-        _playerGround.FixedUpdate(currentPosition);
-        DampVelocity(time);
-        CalculateGravity(time);
-        _velocity += _gravityVelocity;
-        VelocityCalculated?.Invoke(_velocity);
-
-        _wasGrounded = _playerGround.Grounded;
-        _velocityToAdd = Vector3.zero;
     }
-
+    private void CheckGround()
+    {
+        if (_playerGround.Grounded == true && _wasGrounded == false)
+        {
+            _forces.x = 0;
+            _forces.z = 0;
+        }
+        _wasGrounded = _playerGround.Grounded;
+    }
     private void CalculateGravity(float time)
     {
-        _gravityVelocity += _gravity * time * _gravityMultiplier;
+        _forces += _gravity * time * _gravityMultiplier;
         if (_playerGround.Grounded == true)
         {
-            _velocity.y = _velocity.y < _minimumYValue == true ? _minimumYValue : _velocity.y;
-            _gravityVelocity.y = _gravityVelocity.y < _minimumYValue == true ? _minimumYValue : _gravityVelocity.y;
+            _forces.y = _forces.y < _minimumYValue == true ? _minimumYValue : _forces.y;
         }
-    }
 
-    public void Move(Vector3 input)
-    {
-        var projectedInput = _playerGround.Project(input);
-        if (_playerGround.CurrentNormal.y == 1)
+        if (_playerGround.CurrentNormal.y != 1)
         {
-            _velocity += projectedInput;
-            return;
+            _forces.y -= _slopeFallSpeed;
         }
-        if (projectedInput.z <= 0)
-            projectedInput.y -= _slopeFallSpeed;
-        _velocity += projectedInput;
-    }
 
-    private void DampVelocity(float time)
-    {
-        var velocity = _velocity;
-        velocity.y = 0;
-        _velocity -= velocity * _dampingForce * time;
-    }
+        if (_forces.z != 0)
+        {
+            _forces.z += _inputMovement.z * _dampingForce * time;
+        }
 
+        if (_forces.x != 0)
+        {
+            _forces.x += _inputMovement.x * _dampingForce * time;
+        }
+    }
     public void Jump(Vector3 force)
     {
         if (_playerGround.Grounded == true)
         {
-            _velocity += force;
+            AddInstantForce(force);
         }
     }
-
-    public void SetVelocity(Vector3 velocity)
+    public void FixedUpdate(Vector3 currentPosition, float time)
     {
-        _velocity = velocity;
-        _gravityVelocity.y = velocity.y;
+        _playerGround.FixedUpdate(currentPosition);
+
+        CalculateGravity(time);
+        _movement = _forces + _inputMovement;
+        VelocityCalculated?.Invoke(_movement);
+        CheckGround();
     }
 
-    public void Start()
-    { }
+    public void Move(Vector3 input)
+    {
+        if (input == Vector3.zero)
+        {
+            _inputMovement = Vector3.zero;
+            return;
+        }
+        _inputMovement += input;
+        var difference = input - _inputMovement;
+        if (_inputMovement != input)
+        {
+            _inputMovement += difference;
+        }
+        _inputMovement = _playerGround.Project(_inputMovement);
+    }
+
+    private void AddInstantForce(Vector3 force) => _forces += force;
 }

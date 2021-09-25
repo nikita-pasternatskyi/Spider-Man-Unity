@@ -23,10 +23,6 @@ public class PlayerStateMachine : MonoBehaviour
         _playerInput = GetComponent<PlayerInput>();
     }
 
-    private void FixedUpdate()
-    {
-        _playerPhysicsStateMachine.Move(_movementInput * _currentSpeed);
-    }
 
     private void OnEnable()
     {
@@ -34,6 +30,11 @@ public class PlayerStateMachine : MonoBehaviour
         _playerInput.SwingPressed += OnSwingPressed;
         _playerInput.MovementPressed += OnMovementPressed;
         _playerInput.JumpPressed += OnJumpPressed;
+    }
+
+    private void Update()
+    {
+        _playerPhysicsStateMachine.Move(_movementInput * _currentSpeed);
     }
 
     private void OnSwingPressed()
@@ -62,6 +63,8 @@ public class PlayerStateMachine : MonoBehaviour
             return;
         }
         _currentSpeed = _walkSpeed;
+
+
     }
     private void OnMovementPressed(Vector2 obj)
     {

@@ -33,24 +33,17 @@ public class StateTransitions<T> where T : State
         }
         return default(T);
     }
-
-    class StateTransition<T> where T : State
-    {
-        public T To { get; private set; }
-        public Func<bool> Condition { get; private set; }
-
-
-        public StateTransition(T to, Func<bool> condition)
-        {
-            Condition = condition;
-            To = to;
-        }
-    }
-
 }
 
+public class StateTransition<T> where T : State
+{
+    public T To { get; private set; }
+    public Func<bool> Condition { get; private set; }
 
 
-
-
-
+    public StateTransition(T to, Func<bool> condition)
+    {
+        Condition = condition;
+        To = to;
+    }
+}

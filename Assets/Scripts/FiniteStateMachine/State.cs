@@ -2,10 +2,10 @@
 
 public abstract class State
 {
-    public abstract void Exit();
-    public abstract void Enter();
-    public abstract void FixedUpdate();
-    public abstract void LogicUpdate();
+    public virtual void Exit() { }
+    public virtual void Enter() { }
+    public virtual void FixedUpdate() { }
+    public virtual void Update() { }
 
     public virtual void OnCollisionExit2D(Collision2D collision) { }
 

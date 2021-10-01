@@ -17,7 +17,6 @@ public abstract class StateMachine<TStateType> : MonoBehaviour where TStateType 
         foreach (var item in GetStates())
         {
             _states.Add(item.GetType(), item);
-            Debug.Log(item);
         }
     }
     private void Start()
@@ -30,9 +29,6 @@ public abstract class StateMachine<TStateType> : MonoBehaviour where TStateType 
                 throw new MissingReferenceException(nameof(item));
             }
 
-            print(item);
-            print(item.GetType());
-            print(item.ToString());
             _dependencyResolvers.Add(item.GetType(), item);
         }
         ResolveStateDependencies();
@@ -40,7 +36,7 @@ public abstract class StateMachine<TStateType> : MonoBehaviour where TStateType 
     }
     private void Update()
     {
-        _currentState.LogicUpdate();
+        _currentState.Update();
         StateMachineUpdate();
     }
     private void FixedUpdate()
@@ -101,7 +97,7 @@ public abstract class StateMachine<TStateType> : MonoBehaviour where TStateType 
 
             foreach (var fieldInfo in type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
             {
-                if (fieldInfo.GetCustomAttributes<StateDependencyAttribute>().Count() == 0)
+                if (fieldInfo.GetCustomAttributes<StateInjectAttribute>().Count() == 0)
                     continue;
                 _dependencyResolvers.TryGetValue(fieldInfo.FieldType, out object resolver);
                 fieldInfo.SetValue(state, resolver);
@@ -134,7 +130,7 @@ public class StateAttribute : Attribute
 }
 
 [AttributeUsage(AttributeTargets.Field)]
-public class StateDependencyAttribute : Attribute
+public class StateInjectAttribute : Attribute
 {
 
 }

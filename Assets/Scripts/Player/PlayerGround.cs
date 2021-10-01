@@ -1,13 +1,20 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
-[System.Serializable]
+[Serializable]
 public class PlayerGround : SurfaceSlider
 {
-    [SerializeField] private Vector3 _groundDirection;
+    [SerializeField] private Vector3 _groundCheckDirection;
     [SerializeField] private float _groundCheckDistance;
     public bool Grounded { get; private set; }
-    public void FixedUpdate(Vector3 currentPosition)
+    public event Action<bool> GroundedChanged;
+    public void FixedUpdate()
     {
-        Grounded = Check(currentPosition, _groundDirection, _groundCheckDistance);
+        var grounded = Check(transform.position, _groundCheckDirection, _groundCheckDistance);
+        if (grounded != Grounded)
+        {
+            Grounded = grounded;
+            GroundedChanged?.Invoke(Grounded);
+        }
     }
 }

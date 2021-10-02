@@ -1,10 +1,16 @@
 ﻿using UnityEngine;
 
+public interface IVelocityComputer
+{
+    public Vector3 Compute(ref Vector3 forces, in Vector3 movementInput, in float time, IGravity gravity, IPhysicsMove mover, IVelocityDamper velocityDamper, IVelocityConstrainer velocityConstrainer);
+}
+
 public class PhysicsSystem
 {
     public Vector3 Forces;
 
     private Vector3 _moveInput;
+    private IVelocityComputer _velocityComputer;
     private IGravity _gravity;
     private IPhysicsMove _mover;
     private IVelocityDamper _velocityDamper;
@@ -19,7 +25,9 @@ public class PhysicsSystem
     }
 
     public PhysicsSystem()
-    { }
+    {
+        _velocityComputer = new StandardVelocityComputer();
+    }
 
     public PhysicsSystem(PhysicsSystemPreset physicsSystemMode)
     {
@@ -36,10 +44,7 @@ public class PhysicsSystem
 
     public Vector3 Compute(float time)
     {
-        Forces += _gravity.CalculateGravity(time);
-        _velocityDamper.DampVelocity(ref Forces, time);
-        _velocityConstrainer.ConstrainVelocity(ref Forces, time);
-        return Forces;
+        return _velocityComputer.Compute(ref Forces, _moveInput, time, _gravity, _mover, _velocityDamper, _velocityConstrainer);
     }
 
     public void Move(Vector3 input) => _moveInput = _mover.Move(input, ref _moveInput);
@@ -52,7 +57,10 @@ public class PhysicsSystem
         _mover = preset.Mover;
         _velocityConstrainer = preset.Constrainer;
         _velocityDamper = preset.Damper;
+        _velocityComputer = preset.Computer;
     }
+
+    public void ChangeComputer(IVelocityComputer newComputer) => _velocityComputer = newComputer;
 
     public void ChangeGravity(IGravity newGravity) => _gravity = newGravity;
 
@@ -62,4 +70,26 @@ public class PhysicsSystem
 
     public void ChangeVelocityConstrainer(IVelocityConstrainer newVelocityConstrainer) => _velocityConstrainer = newVelocityConstrainer;
 
+}
+
+public class StandardVelocityComputer : IVelocityComputer
+{
+    public Vector3 Compute(ref Vector3 forces, in Vector3 movementInput, in float time, IGravity gravity, IPhysicsMove mover, IVelocityDamper velocityDamper, IVelocityConstrainer velocityConstrainer)
+    {
+        forces += gravity.CalculateGravity(time);
+        velocityDamper.DampVelocity(ref forces, time);
+        velocityConstrainer.ConstrainVelocity(ref forces, time);
+        return forces + movementInput;
+    }
+}
+
+public class ExponentialVelocityComputer : IVelocityComputer
+{
+    public Vector3 Compute(ref Vector3 forces, in Vector3 movementInput, in float time, IGravity gravity, IPhysicsMove mover, IVelocityDamper velocityDamper, IVelocityConstrainer velocityConstrainer)
+    {
+        forces += gravity.CalculateGravity(time);
+        velocityDamper.DampVelocity(ref forces, time);
+        velocityConstrainer.ConstrainVelocity(ref forces, time);
+        return forces += movementInput;
+    }
 }

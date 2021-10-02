@@ -10,21 +10,21 @@ public class PendulumPhysics
 
     public PhysicsSystemPreset CreatePreset()
     {
-        return new PhysicsSystemPreset(_gravity, _pendulumMover, _damper, _constrainer);
+        return new PhysicsSystemPreset(_gravity, _pendulumMover, _damper, _constrainer, new ExponentialVelocityComputer());
     }
+
+    public void Initialize() => _pendulumMover = new PendulumMover();
 
     public void FixedUpdate(Vector3 currentPosition)
     {
         _constrainer.UpdatePosition(currentPosition);
-        _gravity.ChangeDirection(_constrainer.GetDirection());
         _pendulumMover.UpdateDirection(_constrainer.GetDirection());
+        _gravity.ChangeDirection(_constrainer.GetDirection());
     }
 
     public void ChangeTether(Vector3 point, Vector3 currentPosition)
     {
         _constrainer.UpdatePosition(currentPosition);
-        if (_pendulumMover == null)
-            _pendulumMover = new PendulumMover();
         _constrainer.ChangeTether(point);
     }
 }

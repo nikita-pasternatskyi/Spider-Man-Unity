@@ -16,7 +16,7 @@ public class NormalPhysics
 
     public PhysicsSystemPreset CreatePreset()
     {
-        return new PhysicsSystemPreset(_gravity, _mover, _damper, _constrainer);
+        return new PhysicsSystemPreset(_gravity, _mover, _damper, _constrainer, new StandardVelocityComputer());
     }
 
     public void UpdateInput(Vector3 input)

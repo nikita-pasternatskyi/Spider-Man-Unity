@@ -4,7 +4,7 @@
 public class PendulumVelocityConstraints : IVelocityConstrainer
 {
     [SerializeField] private float _spring;
-    private Pendulum.TetherPoint _currentTetherPoint;
+    private TetherPoint _currentTetherPoint;
     private Vector3 _currentBobPosition;
     private Vector3 _direction;
 
@@ -17,7 +17,7 @@ public class PendulumVelocityConstraints : IVelocityConstrainer
 
     public void ChangeTether(Vector3 point)
     {
-        _currentTetherPoint = new Pendulum.TetherPoint(point, Vector3.zero, Vector3.Distance(_currentBobPosition, point));
+        _currentTetherPoint = new TetherPoint(point, Vector3.zero, Vector3.Distance(_currentBobPosition, point));
     }
 
     public void ConstrainVelocity(ref Vector3 velocity, float time)

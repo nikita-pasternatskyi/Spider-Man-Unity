@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+[System.Serializable]
 public class PendulumMover : IPhysicsMove
 {
     private Vector3 _direction;
@@ -7,6 +8,6 @@ public class PendulumMover : IPhysicsMove
 
     public Vector3 Move(Vector3 input, ref Vector3 totalInputforce)
     {
-        return Vector3.Project(input, _direction);
+        return Vector3.ProjectOnPlane(input, _direction);
     }
 }

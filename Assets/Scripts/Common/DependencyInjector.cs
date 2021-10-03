@@ -50,15 +50,18 @@ public abstract class DependencyInjector
     {
         foreach (var dependencyNeeder in GetDependencies())
         {
-            Type type = dependencyNeeder.GetType();
-
-            foreach (var fieldInfo in type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy))
+            if (dependencyNeeder != null)
             {
-                if (fieldInfo.GetCustomAttributes<InjectAttribute>().Count() == 0)
-                    continue;
-                _dependencyResolvers.TryGetValue(fieldInfo.FieldType, out object resolver);
+                Type type = dependencyNeeder.GetType();
 
-                fieldInfo.SetValue(dependencyNeeder, resolver);
+                foreach (var fieldInfo in type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy))
+                {
+                    if (fieldInfo.GetCustomAttributes<InjectAttribute>().Count() == 0)
+                        continue;
+                    _dependencyResolvers.TryGetValue(fieldInfo.FieldType, out object resolver);
+
+                    fieldInfo.SetValue(dependencyNeeder, resolver);
+                }
             }
         }
     }

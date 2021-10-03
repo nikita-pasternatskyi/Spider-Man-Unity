@@ -15,6 +15,7 @@ public class PlayerInput : MonoBehaviour
 
     private List<IInputListener> _listeners;
     private Controls _actionMap;
+    private bool _swinning;
 
     private void Awake()
     {
@@ -33,11 +34,16 @@ public class PlayerInput : MonoBehaviour
 
         _actionMap.Gameplay.Jump.performed += _ctx => JumpPressed?.Invoke();
 
-        _actionMap.Gameplay.ThrowWeb.performed += _ctx => SwingPressed?.Invoke(_ctx.performed);
-        _actionMap.Gameplay.ThrowWeb.canceled += _ctx => SwingPressed?.Invoke(_ctx.performed);
+        _actionMap.Gameplay.ThrowWeb.performed += _ctx => OnSwingPressed();
 
         _actionMap.Gameplay.Modifier.performed += _ctx => ModifierPressed?.Invoke(_ctx.performed);
         _actionMap.Gameplay.Modifier.canceled += _ctx => ModifierPressed?.Invoke(_ctx.performed);
+    }
+
+    private void OnSwingPressed()
+    {
+        _swinning = _swinning == true ? false : true;
+        SwingPressed?.Invoke(_swinning);
     }
 
     private void OnDisable()

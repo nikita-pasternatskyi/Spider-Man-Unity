@@ -25,9 +25,9 @@ public class PendulumVelocityConstraints : IVelocityConstrainer
         _direction = _currentTetherPoint.Position - _currentBobPosition;
         velocity = Vector3.ProjectOnPlane(velocity, _direction);
         _currentTetherPoint.Position = _currentTetherPoint.StartPosition;
-
         float distance = Vector3.Distance(_currentBobPosition, _currentTetherPoint.Position);
         float distanceError = Mathf.Abs(distance - _currentTetherPoint.Length);
+
         Vector3 changeDirection = Vector3.zero;
         if (distance > _currentTetherPoint.Length)
         {

@@ -1,28 +1,31 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
-[RequireComponent(typeof(GrapplePointer))]
+[RequireComponent(typeof(GrapplePointFinder))]
 [RequireComponent(typeof(PlayerInput))]
 [RequireComponent(typeof(TransformRelativeConvertor))]
 [RequireComponent(typeof(Rigidbody))]
 public class Player : MonoBehaviour
 {
-    [SerializeField] private LineRendererPointsView _line;
     [Header("StateMachine")]
     [SerializeField] private PlayerStateMachine _playerStateMachine;
+    [SerializeField] private bool _lockMouseCursor;
 
     [Header("Physics")]
+    [SerializeField] private LineRendererPointsView _webLine;
     [SerializeField] private PlayerGround _ground;
     [SerializeField] private PlayerPhysics _playerPhysics;
 
-    private GrapplePointer _grapplePointer;
+    private GrapplePointFinder _grapplePointer;
     private TransformRelativeConvertor _relativeConvertor;
     private PlayerInput _playerInput;
     private Rigidbody _rigidbody;
 
     private void Awake()
     {
-        _grapplePointer = GetComponent<GrapplePointer>();
+        if (_lockMouseCursor == true)
+            Cursor.lockState = CursorLockMode.Locked;
+
+        _grapplePointer = GetComponent<GrapplePointFinder>();
         _relativeConvertor = GetComponent<TransformRelativeConvertor>();
         _playerInput = GetComponent<PlayerInput>();
         _rigidbody = GetComponent<Rigidbody>();
@@ -35,17 +38,20 @@ public class Player : MonoBehaviour
 
     private void OnEnable()
     {
-        _playerPhysics.Attached += _line.AddPoint;
-        _playerPhysics.Detached += _line.Reset;
+        _playerPhysics.Attached += _webLine.AddPoint;
+        _playerPhysics.Detached += _webLine.Reset;
         _ground.GroundedChanged += _playerPhysics.OnGroundedChanged;
     }
 
-    private void FixedUpdate() => _rigidbody.velocity = _playerPhysics.PhysicsUpdate(transform.position);
+    private void FixedUpdate()
+    {
+        _rigidbody.velocity = _playerPhysics.PhysicsUpdate(transform.position);
+    }
 
     private void OnDisable()
     {
-        _playerPhysics.Detached -= _line.Reset;
-        _playerPhysics.Attached -= _line.AddPoint;
+        _playerPhysics.Attached -= _webLine.AddPoint;
+        _playerPhysics.Detached -= _webLine.Reset;
         _ground.GroundedChanged -= _playerPhysics.OnGroundedChanged;
     }
 }

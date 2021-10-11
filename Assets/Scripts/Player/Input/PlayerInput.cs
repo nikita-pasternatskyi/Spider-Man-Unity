@@ -34,16 +34,16 @@ public class PlayerInput : MonoBehaviour
 
         _actionMap.Gameplay.Jump.performed += _ctx => JumpPressed?.Invoke();
 
-        _actionMap.Gameplay.ThrowWeb.performed += _ctx => OnSwingPressed();
+        _actionMap.Gameplay.ThrowWeb.performed += _ctx => OnSwingPressed(_ctx.performed);
+        _actionMap.Gameplay.ThrowWeb.canceled += _ctx => OnSwingPressed(_ctx.performed);
 
         _actionMap.Gameplay.Modifier.performed += _ctx => ModifierPressed?.Invoke(_ctx.performed);
         _actionMap.Gameplay.Modifier.canceled += _ctx => ModifierPressed?.Invoke(_ctx.performed);
     }
 
-    private void OnSwingPressed()
+    private void OnSwingPressed(bool obj)
     {
-        _swinning = _swinning == true ? false : true;
-        SwingPressed?.Invoke(_swinning);
+        SwingPressed?.Invoke(obj);
     }
 
     private void OnDisable()

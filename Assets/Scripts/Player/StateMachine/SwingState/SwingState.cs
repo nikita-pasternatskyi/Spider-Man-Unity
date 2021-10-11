@@ -7,20 +7,22 @@ public class SwingState : PlayerState
     [SerializeField] private Vector3 _boost;
     [SerializeField] private Vector3 _jump;
 
+    [Inject] private PlayerStateMachine _playerStateMachine;
     [Inject] private TransformRelativeConvertor _relativeConvertor;
-    [Inject] private PlayerPhysics _physicsSystem;
+    [Inject] private PlayerPhysics _physics;
 
     private Vector3 _currentInput;
     private bool _modified;
 
     public override void Enter()
     {
-        Debug.Log("Swing");
+        _currentInput = _playerStateMachine.CurrentInput;
+        MovePlayer();
     }
 
     public override void Exit()
     {
-         Debug.Log("Bye");
+        _physics.Detach();
     }
 
     public override void OnMoved(Vector3 input)
@@ -33,7 +35,13 @@ public class SwingState : PlayerState
     {
         _modified = obj;
         if (_modified == true)
-            _physicsSystem.AddForce(_relativeConvertor.ConvertToRelative(_boost));
+            _physics.AddForce(_relativeConvertor.ConvertToRelative(_boost));
+    }
+
+    public override void OnSwingPressed(bool obj)
+    {
+        if(obj == false)
+            _playerStateMachine.ChangeState(PlayerStateMachine.PlayerStates.NormalState);
     }
 
     public override void OnJumpPressed()
@@ -48,11 +56,12 @@ public class SwingState : PlayerState
 
     private void MovePlayer()
     {
-        _physicsSystem.Move(_relativeConvertor.ConvertToRelative(_currentInput * _speed));
+        _physics.Move(_relativeConvertor.ConvertToRelative(_currentInput * _speed));
     }
 
     private void Jump()
     {
-        _physicsSystem.AddForce(_relativeConvertor.ConvertToRelative(_jump));
+        _physics.AddForce(_relativeConvertor.ConvertToRelative(_jump));
+        _playerStateMachine.ChangeState(PlayerStateMachine.PlayerStates.NormalState);
     }
 }

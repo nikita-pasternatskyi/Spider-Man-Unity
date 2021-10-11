@@ -3,8 +3,8 @@
 [System.Serializable]
 public class PendulumPhysics
 {
-    [SerializeField] private PendulumGravity _gravity;
-    [SerializeField] private PendulumVelocityConstraints _constrainer;
+    [SerializeField] private Gravity _gravity;
+    [SerializeField] private PendulumVelocityConstrainer _constrainer;
     [SerializeField] private PendulumVelocityDamper _damper;
     private PendulumMover _pendulumMover;
 
@@ -19,7 +19,6 @@ public class PendulumPhysics
     {
         _constrainer.UpdatePosition(currentPosition);
         _pendulumMover.UpdateDirection(_constrainer.GetDirection());
-        _gravity.ChangeDirection(_constrainer.GetDirection());
     }
 
     public void ChangeTether(Vector3 point, Vector3 currentPosition)

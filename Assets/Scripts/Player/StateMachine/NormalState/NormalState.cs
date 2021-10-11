@@ -10,13 +10,23 @@ public class NormalState : PlayerState
     private Vector3 _currentInput;
     private bool _modified;
 
+    [Inject] private PlayerStateMachine _playerStateMachine;
+    [Inject] private GrapplePointFinder _grapplePointer;
     [Inject] private TransformRelativeConvertor _relativeConvertor;
-    [Inject] private PlayerPhysics _physicsSystem;
+    [Inject] private PlayerPhysics _physics;
 
     public override void OnMoved(Vector3 input)
     {
         _currentInput = input;
         MovePlayer();
+    }
+
+    public override void OnSwingPressed(bool obj)
+    {
+        if (obj == true)
+        {
+            Swing();
+        }
     }
 
     public override void OnModifierPressed(bool obj)
@@ -39,20 +49,29 @@ public class NormalState : PlayerState
     {
         if (_modified == true)
         {
-            _physicsSystem.Move(_relativeConvertor.ConvertToRelative(_currentInput * _runSpeed));
+            _physics.Move(_relativeConvertor.ConvertToRelative(_currentInput * _runSpeed));
             return;
         }
-        _physicsSystem.Move(_relativeConvertor.ConvertToRelative(_currentInput * _speed));
+        _physics.Move(_relativeConvertor.ConvertToRelative(_currentInput * _speed));
+    }
+
+    private void Swing()
+    {
+        if (_grapplePointer.FindGrapplePoint(_relativeConvertor.ConvertToRelative(_currentInput), _relativeConvertor.transform.forward, _relativeConvertor.transform.right, out Vector3 point) == true)
+        {
+            _physics.Attach(point);
+            _playerStateMachine.ChangeState(PlayerStateMachine.PlayerStates.SwingState);
+        }
     }
 
     private void Jump()
     {
         if (_modified == true)
         {
-            _physicsSystem.AddForce(_relativeConvertor.ConvertToRelative(_runJump));
+            _physics.AddForce(_relativeConvertor.ConvertToRelative(_runJump));
             return;
         }
-        _physicsSystem.AddForce(_relativeConvertor.ConvertToRelative(_jump));
+        _physics.AddForce(_relativeConvertor.ConvertToRelative(_jump));
     }
 }
 

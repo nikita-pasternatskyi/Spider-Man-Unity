@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 [System.Serializable]
 public class PlayerStateMachine : DependencyInjector, IInputListener
@@ -7,16 +9,23 @@ public class PlayerStateMachine : DependencyInjector, IInputListener
     [SerializeField] private NormalState _normalState;
     [SerializeField] private SwingState _swingState;
 
+    [DependencyResolver] private PlayerStateMachine _playerStateMachine;
     [DependencyResolver] private TransformRelativeConvertor _convertor;
     [DependencyResolver] private PlayerPhysics _playerPhysics;
+    [DependencyResolver] private GrapplePointFinder _grapplePointer;
 
-    private GrapplePointer _grapplePointer;
+    public Vector3 CurrentInput { get; private set; }
     private PlayerState _currentState;
+    private Dictionary<PlayerStates, PlayerState> _states;
 
-    private Vector3 _currentInput;
-
-    public void Initialize(GrapplePointer grapplePointer, PlayerPhysics playerPhysics, TransformRelativeConvertor convertor)
+    public enum PlayerStates
     {
+        NormalState, SwingState
+    }
+
+    public void Initialize(GrapplePointFinder grapplePointer, PlayerPhysics playerPhysics, TransformRelativeConvertor convertor)
+    {
+        _playerStateMachine = this;
         if (grapplePointer == null)
             throw new MissingReferenceException(nameof(grapplePointer));
         if (convertor == null)
@@ -27,16 +36,16 @@ public class PlayerStateMachine : DependencyInjector, IInputListener
         _grapplePointer = grapplePointer;
         _convertor = convertor;
         _playerPhysics = playerPhysics;
-
+        _states = new Dictionary<PlayerStates, PlayerState>();
+        _states.Add(PlayerStates.NormalState, _normalState);
+        _states.Add(PlayerStates.SwingState, _swingState);
         InjectDependencies();
-        ChangeState(_normalState);
+        ChangeState(PlayerStates.NormalState);
     }
 
     public void OnJumpPressed()
     {
         _currentState.OnJumpPressed();
-        ChangeState(_normalState);
-        _playerPhysics.Detach();
     }
 
     public void OnModifierPressed(bool obj) => _currentState.OnModifierPressed(obj);
@@ -45,30 +54,18 @@ public class PlayerStateMachine : DependencyInjector, IInputListener
 
     public void OnMoved(Vector3 input)
     {
-        _currentInput = input;
+        CurrentInput = input;
         _currentState.OnMoved(input);
     }
 
     public void OnSwingPressed(bool obj)
     {
         _currentState.OnSwingPressed(obj);
-        if (obj == true)
-        {
-            if (_grapplePointer.CheckGrapplePoint(_currentInput, out Vector3 point) == true)
-            {
-                ChangeState(_swingState);
-                _playerPhysics.Attach(point);
-            }
-            return;
-        }
-
-        //_playerPhysics.Detach();
-        //ChangeState(_normalState);
-
     }
 
-    private void ChangeState(PlayerState newState)
+    public void ChangeState(PlayerStates playerState)
     {
+        _states.TryGetValue(playerState, out PlayerState newState);
         if (newState == _currentState)
             return;
         _currentState?.Exit();
@@ -76,3 +73,5 @@ public class PlayerStateMachine : DependencyInjector, IInputListener
         _currentState.Enter();
     }
 }
+
+
